@@ -47,6 +47,13 @@ In each world, set up:
 - [ ] The GM sees a player's card with the button disabled.
 - [ ] Double-clicking the button spends only once.
 
+## Refocus refill
+- [ ] A class Mystic with a partly spent network uses Refocus from the sheet: the network goes to its maximum, written once with 3 clients connected.
+- [ ] The announcement follows **Show Vitality Network Updates** and **Update Notification Style**: one chat message in chat mode, or a UI notification only for the right users.
+- [ ] Refocus with a full network writes and announces nothing.
+- [ ] **Refill on Refocus** set to *Mystics by class only*: a Mystic Dedication character isn't refilled. Set to *Everyone*: they are. Set to *Off*: nobody is.
+- [ ] A Refocus message that isn't the Refocus action (e.g. typed text) doesn't refill.
+
 ## Healing
 - [ ] With pf2e-toolbelt and exactly one target, the roll card's Target Helper section lists only that creature, and applying heals it.
 - [ ] Targeting yourself works the same way.

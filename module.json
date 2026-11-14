@@ -2,7 +2,7 @@
   "id": "sargas-vitality-network",
   "type": "module",
   "title": "Sargas' Vitality Network (Starfinder 2e)",
-  "description": "<p>Automates the Starfinder 2e Mystic's Vitality Network: turn-start recharge, the Transfer Vitality per-use limit, and point spending through a popup or chat card, with the healing rolled ready to apply (pf2e-toolbelt adds a per-target apply button). Built for the Starfinder 2e system, with secondary support for Pathfinder 2e + Starfinder Anachronism.</p>",
+  "description": "<p>Automates the Starfinder 2e Mystic's Vitality Network: turn-start recharge, Refocus refill, the Transfer Vitality per-use limit, and point spending through a popup or chat card, with the healing rolled ready to apply (pf2e-toolbelt adds a per-target apply button). Built for the Starfinder 2e system, with secondary support for Pathfinder 2e + Starfinder Anachronism.</p>",
   "version": "1.0.0",
   "compatibility": {
     "minimum": "14",

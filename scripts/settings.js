@@ -65,4 +65,19 @@ export function registerSettings() {
     },
     default: 'ui'
   });
+
+  // Refill the network when the Refocus action is used
+  game.settings.register(MODULE_ID, 'refocusRefill', {
+    name: 'Refill on Refocus',
+    hint: 'When the Refocus action is posted to chat, refill the Vitality Network to its maximum. The Mystic Dedication version of Vitality Network does not mention a Refocus refill, so by default only Mystics by class get it.',
+    scope: 'world',      // GM sets this for everyone
+    config: true,
+    type: String,
+    choices: {
+      'class': 'Mystics by class only',
+      'all': 'Everyone with a Vitality Network (includes Mystic Dedication)',
+      'off': 'Off'
+    },
+    default: 'class'
+  });
 }
