@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 (2026-11-14)
 
 ### Added
 - **Refocus refill**: when the Refocus action is posted to chat, the Vitality Network is refilled to its maximum (Player Core pg. 114). One client writes it, and the announcement follows the same visibility and style settings as the turn-start recharge.
