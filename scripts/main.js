@@ -1,40 +1,40 @@
 /**
- * main.js — Greenbottle's Vitality Network
+ * main.js — Sargas' Vitality Network
  *
- * Module entry point. Wires together settings, combat hooks, and transfer vitality hooks.
+ * Module entry point. Registers settings and hooks, but only on a supported
+ * game system (Starfinder 2e, or Pathfinder 2e with Starfinder Anachronism).
  *
  * Module architecture:
  *   main.js                          ← you are here (bootstraps everything)
+ *   constants.js                     ← module ID and title
  *   settings.js                      ← registers all Foundry module settings
- *   handlers/combat.js               ← fires updateVitalityPool on every combat turn
- *   handlers/transfer-vitality.js    ← detects Transfer Vitality action, shows spend UI
- *   healing.js                       ← rolls healing and passes it to pf2e-toolbelt targets
- *   update-vitality-pool.js          ← calculates and applies per-turn vitality regen
- *
- * The Vitality Network resource lives on SF2e characters at:
- *   actor.system.resources.vitalityNetwork.value  (current)
- *   actor.system.resources.vitalityNetwork.max    (maximum)
+ *   system-adapter.js                ← everything that differs between SF2e and PF2e
+ *   utils.js                         ← rules (limits, recharge), spending, visibility helpers
+ *   handlers/combat.js               ← recharges the network at the start of each turn
+ *   handlers/transfer-vitality.js    ← detects Transfer Vitality, shows the spend prompt
+ *   healing.js                       ← rolls the healing and hands it to pf2e-toolbelt
+ *   update-vitality-pool.js          ← the per-turn recharge itself
  */
 
+import { MODULE_TITLE } from './constants.js';
 import { registerSettings } from './settings.js';
+import { isSupportedSystem, SUPPORTED_SYSTEMS } from './system-adapter.js';
 import { registerCombatHooks } from './handlers/combat.js';
-import { registerTransferVitalityHooks } from './handlers/transfer-vitality.js';
+import { registerChatCardHooks, registerTransferVitalityHooks } from './handlers/transfer-vitality.js';
 
-// 'init' fires before the game is fully loaded — safe place to register settings.
 Hooks.once('init', () => {
-  console.log("Greenbottle's Vitality Network | Initializing");
+  if (!isSupportedSystem()) {
+    console.warn(`${MODULE_TITLE} | System "${game.system.id}" is not supported (needs ${SUPPORTED_SYSTEMS.join(' or ')}); module disabled.`);
+    return;
+  }
+  console.log(`${MODULE_TITLE} | Initializing on ${game.system.id}`);
   registerSettings();
+  registerChatCardHooks();
 });
 
-// 'ready' fires after all modules and the game world are loaded.
 Hooks.once('ready', () => {
-  console.log("Greenbottle's Vitality Network | Ready");
-  ui.notifications.info("Greenbottle's Vitality Network | Ready");
+  if (!isSupportedSystem()) return;
   registerCombatHooks();
   registerTransferVitalityHooks();
+  console.log(`${MODULE_TITLE} | Ready`);
 });
-
-
-
-
-

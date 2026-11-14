@@ -1,3 +1,14 @@
+# Builds and publishes a release when a GitHub release is published.
+#
+# Everything (package id, version, Foundry compatibility) is read from
+# module.json, so module.json is the only file to edit before releasing.
+# Tag the release with the module.json version, with or without a leading
+# "v" (1.0.0 or v1.0.0); the build fails if they don't match.
+#
+# The Foundry package registry step only runs once the FVTT_PACKAGE_TOKEN
+# secret is set on this repository (from the package's page on
+# foundryvtt.com); until then it is skipped rather than failing.
+
 name: Release Module
 
 on:
@@ -10,37 +21,68 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      FVTT_PACKAGE_TOKEN: ${{ secrets.FVTT_PACKAGE_TOKEN }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Read and check module.json
+        id: manifest
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          MODULE_ID=$(jq -r '.id' module.json)
+          MODULE_VERSION=$(jq -r '.version' module.json)
+
+          if [ "$TAG_VERSION" != "$MODULE_VERSION" ]; then
+            echo "::error::Release tag '$GITHUB_REF_NAME' does not match module.json version '$MODULE_VERSION'."
+            exit 1
+          fi
+
+          echo "id=$MODULE_ID" >> "$GITHUB_OUTPUT"
+          echo "version=$MODULE_VERSION" >> "$GITHUB_OUTPUT"
+
+      # The module.json attached to this release points its download at this
+      # release's zip, so installing an older version from the registry gets
+      # that version. The "manifest" field keeps pointing at latest so
+      # Foundry still finds updates.
+      - name: Pin download URL to this release
+        run: |
+          DOWNLOAD="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/module.zip"
+          jq --arg download "$DOWNLOAD" '.download = $download' module.json > module.json.tmp
+          mv module.json.tmp module.json
 
       - name: Create module.zip
-        run: zip -r ./module.zip module.json scripts/ styles/ packs/
+        run: zip -r ./module.zip module.json LICENSE README.md scripts/ styles/
 
-      - name: Upload Assets to Release
+      - name: Upload assets to release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
           artifacts: './module.zip,./module.json'
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Submit to Foundry Package Registry
-        env:
-          FVTT_PACKAGE_TOKEN: ${{ secrets.FVTT_PACKAGE_TOKEN }}
+      # Prereleases stay on GitHub only, so a beta never becomes the
+      # registry's newest version for everyone.
+      - name: Submit to Foundry package registry
+        if: env.FVTT_PACKAGE_TOKEN != '' && !github.event.release.prerelease
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          curl -f -X POST https://api.foundryvtt.com/_api/packages/release_version/ \
+          PAYLOAD=$(jq -n \
+            --arg id "${{ steps.manifest.outputs.id }}" \
+            --arg version "${{ steps.manifest.outputs.version }}" \
+            --arg manifest "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/module.json" \
+            --arg notes "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}" \
+            --argjson compatibility "$(jq '.compatibility | {minimum, verified, maximum: (.maximum // "")}' module.json)" \
+            '{id: $id, release: {version: $version, manifest: $manifest, notes: $notes, compatibility: $compatibility}}')
+
+          # --fail-with-body keeps the API's error message in the log.
+          curl --fail-with-body -sS -X POST https://api.foundryvtt.com/_api/packages/release_version/ \
             -H "Authorization: $FVTT_PACKAGE_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{
-              \"id\": \"greenbottles-vitality-network\",
-              \"release\": {
-                \"version\": \"$VERSION\",
-                \"manifest\": \"https://github.com/Ayabara1013/greenbottles-vitality-network/releases/download/${GITHUB_REF_NAME}/module.json\",
-                \"notes\": \"https://github.com/Ayabara1013/greenbottles-vitality-network/releases/tag/${GITHUB_REF_NAME}\",
-                \"compatibility\": {
-                  \"minimum\": \"13\",
-                  \"verified\": \"13\"
-                }
-              }
-            }"
+            -d "$PAYLOAD"
+
+      - name: Note skipped registry submission
+        if: env.FVTT_PACKAGE_TOKEN == '' || github.event.release.prerelease
+        run: echo "::notice::Not submitted to the Foundry package registry (prerelease, or FVTT_PACKAGE_TOKEN is not set)."

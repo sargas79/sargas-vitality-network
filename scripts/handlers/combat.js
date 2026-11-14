@@ -1,26 +1,22 @@
+/**
+ * combat.js — Sargas' Vitality Network
+ *
+ * Recharges the Vitality Network at the start of each combatant's turn.
+ */
+
+import { MODULE_TITLE } from '../constants.js';
 import { updateVitalityPool } from '../update-vitality-pool.js';
 
-/**
- * Register combat-related hooks for vitality network updates
- */
 export function registerCombatHooks() {
-  console.log('Greenbottle\'s Vitality Network | Registering combat hooks');
-  
-  // Handle all turn changes (fires for every turn including the first)
-  Hooks.on('combatTurnChange', (combat, updateData) => {
-    const currentCombatant = combat.combatant;
-    
-    // Skip if no active combatant
-    if (!currentCombatant) {
-      console.log('⚠️ combatTurn fired but no active combatant');
-      return;
-    }
-    
-    // console.log(`turn change for ${currentCombatant.name}`);
-    
-    // Update vitality network points for this combatant
-    updateVitalityPool(currentCombatant);
+  // Fires on every client whenever the turn or round changes, including the
+  // first turn when combat starts. updateVitalityPool makes sure only one
+  // client writes and that a turn isn't recharged twice.
+  Hooks.on('combatTurnChange', (combat) => {
+    const combatant = combat?.combatant;
+    if (!combatant) return;
+
+    updateVitalityPool(combat, combatant).catch(error => {
+      console.error(`${MODULE_TITLE} | Recharge failed for ${combatant.name}`, error);
+    });
   });
-  
-  // console.log('Greenbottle\'s Vitality Network | Combat hooks registered');
 }

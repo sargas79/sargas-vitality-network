@@ -1,9 +1,11 @@
+import { MODULE_ID } from './constants.js';
+
 /**
  * Register all module settings
  */
 export function registerSettings() {
   // Dialog style preference (client-side)
-  game.settings.register('greenbottles-vitality-network', 'dialogStyle', {
+  game.settings.register(MODULE_ID, 'dialogStyle', {
     name: 'Dialog Style',
     hint: 'Choose how the vitality network spending prompt appears.',
     scope: 'client',     // Each user can set their own preference
@@ -17,7 +19,7 @@ export function registerSettings() {
   });
 
   // Visibility setting for vitality spending
-  game.settings.register('greenbottles-vitality-network', 'showSpending', {
+  game.settings.register(MODULE_ID, 'showSpending', {
     name: 'Show Vitality Spending',
     hint: 'Controls who sees when vitality points are spent and the healing roll.',
     scope: 'world',      // GM sets this for everyone
@@ -34,7 +36,7 @@ export function registerSettings() {
   });
 
   // Visibility setting for vitality network updates
-  game.settings.register('greenbottles-vitality-network', 'showUpdates', {
+  game.settings.register(MODULE_ID, 'showUpdates', {
     name: 'Show Vitality Network Updates',
     hint: 'Show a notification when vitality network points are restored at turn start.',
     scope: 'world',      // GM sets this for everyone
@@ -51,7 +53,7 @@ export function registerSettings() {
   });
 
   // Style for vitality network update notifications
-  game.settings.register('greenbottles-vitality-network', 'updateNotificationStyle', {
+  game.settings.register(MODULE_ID, 'updateNotificationStyle', {
     name: 'Update Notification Style',
     hint: 'Choose how vitality network restoration notifications appear.',
     scope: 'world',      // GM sets this for everyone
