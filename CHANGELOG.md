@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 (unreleased)
+## 1.0.0 (2026-11-14)
 
 First release as **Sargas' Vitality Network** (`sargas-vitality-network`), a Starfinder 2e-first fork of Greenbottle's Vitality Network 1.2.0.
 
