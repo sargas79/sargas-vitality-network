@@ -12,6 +12,8 @@
  *   utils.js                         ← rules (limits, recharge), spending, visibility helpers
  *   handlers/combat.js               ← recharges the network at the start of each turn
  *   handlers/transfer-vitality.js    ← detects Transfer Vitality, shows the spend prompt
+ *   handlers/refocus.js              ← refills the network when the Mystic Refocuses
+ *   announce.js                      ← "network restored" notifications (recharge and Refocus)
  *   healing.js                       ← rolls the healing and hands it to pf2e-toolbelt
  *   update-vitality-pool.js          ← the per-turn recharge itself
  */
@@ -21,6 +23,7 @@ import { registerSettings } from './settings.js';
 import { isSupportedSystem, SUPPORTED_SYSTEMS } from './system-adapter.js';
 import { registerCombatHooks } from './handlers/combat.js';
 import { registerChatCardHooks, registerTransferVitalityHooks } from './handlers/transfer-vitality.js';
+import { registerRefocusHooks } from './handlers/refocus.js';
 
 Hooks.once('init', () => {
   if (!isSupportedSystem()) {
@@ -36,5 +39,6 @@ Hooks.once('ready', () => {
   if (!isSupportedSystem()) return;
   registerCombatHooks();
   registerTransferVitalityHooks();
+  registerRefocusHooks();
   console.log(`${MODULE_TITLE} | Ready`);
 });

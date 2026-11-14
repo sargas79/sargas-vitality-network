@@ -20,7 +20,7 @@ const notifications = [];
 const chat = [];
 const pending = []; // simulated DB writes, applied by sync()
 const sync = () => { while (pending.length) pending.shift()(); };
-const settings = { showUpdates: 'owner', updateNotificationStyle: 'ui', showSpending: 'all', dialogStyle: 'chat' };
+const settings = { showUpdates: 'owner', updateNotificationStyle: 'ui', showSpending: 'all', dialogStyle: 'chat', refocusRefill: 'class' };
 
 function makeActor({ owners = ['p1'], level = 1, value = 0, max = 10, classSlug = 'mystic', rank = 2 } = {}) {
   const actor = {
@@ -66,6 +66,7 @@ asClient('gm');
 const U = await import('../scripts/utils.js');
 const A = await import('../scripts/system-adapter.js');
 const { updateVitalityPool } = await import('../scripts/update-vitality-pool.js');
+const { refillNetwork } = await import('../scripts/handlers/refocus.js');
 
 // ── Rules ────────────────────────────────────────────────────────────────────
 await test('class transfer limits by level', () => {
@@ -204,12 +205,61 @@ await test('NPCs and actors without a network are skipped', async () => {
   assert.deepEqual(none.writes, []);
 });
 
+// ── Refocus refill ───────────────────────────────────────────────────────────
+async function refocus(actor) {
+  for (const id of ['p2', 'p1', 'gm']) { asClient(id); await refillNetwork(actor); }
+  sync();
+}
+await test('refocus refills a class Mystic once with 3 clients', async () => {
+  notifications.length = 0;
+  const a = makeActor({ owners: ['p1'], level: 10, value: 3, max: 46 });
+  await refocus(a);
+  assert.deepEqual(a.writes, [46]);
+  assert.equal(a.system.resources.vitalityNetwork.value, 46);
+  assert.deepEqual(notifications.map(n => n[1]), ['p1']);
+  assert.ok(notifications[0][2].includes('+43, 46/46'), notifications[0][2]);
+});
+await test('refocus does nothing when already full', async () => {
+  notifications.length = 0;
+  const a = makeActor({ owners: ['p1'], value: 10, max: 10 });
+  await refocus(a);
+  assert.deepEqual(a.writes, []);
+  assert.equal(notifications.length, 0);
+});
+await test('refocus setting: class only, all, off', async () => {
+  const dedication = () => makeActor({ owners: ['p1'], classSlug: 'soldier', value: 0, max: 10 });
+  let a = dedication(); await refocus(a);
+  assert.deepEqual(a.writes, [], 'class mode skips the Dedication');
+  settings.refocusRefill = 'all';
+  a = dedication(); await refocus(a);
+  assert.deepEqual(a.writes, [10], 'all mode includes the Dedication');
+  settings.refocusRefill = 'off';
+  a = makeActor({ owners: ['p1'], value: 0, max: 10 }); await refocus(a);
+  assert.deepEqual(a.writes, [], 'off mode never refills');
+  settings.refocusRefill = 'class';
+});
+await test('refocus chat announcement is posted once', async () => {
+  settings.updateNotificationStyle = 'chat'; chat.length = 0;
+  const a = makeActor({ owners: ['p1'], value: 0, max: 10 });
+  await refocus(a);
+  assert.equal(chat.length, 1);
+  assert.equal(chat[0].by, 'gm');
+  assert.ok(chat[0].flags['sargas-vitality-network'].restored, 'flagged so the module ignores its own message');
+  settings.updateNotificationStyle = 'ui';
+});
+
 // ── Adapter ──────────────────────────────────────────────────────────────────
 await test('transfer vitality detection', () => {
   assert.equal(A.isTransferVitality({ slug: 'transfer-vitality' }), true);
   assert.equal(A.isTransferVitality({ slug: null, name: 'Transfer Vitality' }), true);
   assert.equal(A.isTransferVitality({ slug: 'refocus', name: 'Transfer Vitality' }), false);
   assert.equal(A.isTransferVitality(null), false);
+});
+await test('refocus detection', () => {
+  assert.equal(A.isRefocus({ slug: 'refocus' }), true);
+  assert.equal(A.isRefocus({ slug: null, name: 'Refocus' }), true);
+  assert.equal(A.isRefocus({ slug: 'transfer-vitality', name: 'Refocus' }), false);
+  assert.equal(A.isRefocus(undefined), false);
 });
 await test('system flags namespace follows the system id', () => {
   asClient('gm');

@@ -16,6 +16,7 @@ export const SUPPORTED_SYSTEMS = ['sf2e', 'pf2e'];
 
 const RESOURCE_SLUG = 'vitalityNetwork';
 const TRANSFER_VITALITY_SLUG = 'transfer-vitality';
+const REFOCUS_SLUG = 'refocus';
 
 /** True when the active game system is one this module supports. */
 export function isSupportedSystem() {
@@ -68,12 +69,21 @@ export function getMessageItem(message) {
   }
 }
 
+// Matches by slug, or by name for items whose slug wasn't set (e.g. homebrew copies).
+function matchesAction(item, slug, name) {
+  if (!item) return false;
+  if (item.slug === slug) return true;
+  return !item.slug && item.name?.trim().toLowerCase() === name;
+}
+
 /** True when the item is the Transfer Vitality action. */
 export function isTransferVitality(item) {
-  if (!item) return false;
-  if (item.slug === TRANSFER_VITALITY_SLUG) return true;
-  // Fallback for items whose slug wasn't set (e.g. homebrew copies).
-  return !item.slug && item.name?.trim().toLowerCase() === 'transfer vitality';
+  return matchesAction(item, TRANSFER_VITALITY_SLUG, 'transfer vitality');
+}
+
+/** True when the item is the Refocus action (slug "refocus" on both systems). */
+export function isRefocus(item) {
+  return matchesAction(item, REFOCUS_SLUG, 'refocus');
 }
 
 // ── Character details ────────────────────────────────────────────────────────

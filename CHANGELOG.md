@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0 (2026-11-14)
+
+### Added
+- **Refocus refill**: when the Refocus action is posted to chat, the Vitality Network is refilled to its maximum (Player Core pg. 114). One client writes it, and the announcement follows the same visibility and style settings as the turn-start recharge.
+- **Refill on Refocus** world setting: *Mystics by class only* (default), *Everyone with a Vitality Network* (includes the Mystic Dedication, whose feat text doesn't mention a refill), or *Off*.
+
+### Changed
+- README: installation is by manifest URL or manual zip, since the module isn't listed in Foundry's package browser.
+- The release workflow no longer has a Foundry package registry step.
+
 ## 1.0.0 (2026-11-14)
 
 First release as **Sargas' Vitality Network** (`sargas-vitality-network`), a Starfinder 2e-first fork of Greenbottle's Vitality Network 1.2.0.

@@ -23,13 +23,8 @@
 
 import { MODULE_ID } from './constants.js';
 import { getNetwork, setNetworkValue } from './system-adapter.js';
-import {
-  escapeHTML,
-  getRechargeAmount,
-  getResponsibleUser,
-  getWhisperRecipients,
-  userCanSee
-} from './utils.js';
+import { announceRestore } from './announce.js';
+import { getRechargeAmount, getResponsibleUser } from './utils.js';
 
 export async function updateVitalityPool(combat, combatant) {
   const actor = combatant?.actor;
@@ -58,39 +53,6 @@ export async function updateVitalityPool(combat, combatant) {
   }
 
   if (gained > 0) {
-    announceRecharge(actor, gained, newValue, network.max, responsible);
+    announceRestore(actor, `${actor.name} regained ${gained} Vitality Network points (${newValue}/${network.max})`, responsible);
   }
-}
-
-function announceRecharge(actor, gained, newValue, max, responsible) {
-  const showUpdates = game.settings.get(MODULE_ID, 'showUpdates');
-  if (showUpdates === 'none') return;
-
-  const text = `${actor.name} regained ${gained} Vitality Network points (${newValue}/${max})`;
-  const style = game.settings.get(MODULE_ID, 'updateNotificationStyle');
-
-  // UI notifications are local, so each client checks whether it should see one.
-  if (style !== 'chat') {
-    if (userCanSee(showUpdates, actor)) ui.notifications.info(text);
-    return;
-  }
-
-  // Chat messages are shared, so only the responsible client posts one.
-  if (!responsible) return;
-  const messageData = {
-    speaker: ChatMessage.getSpeaker({ actor }),
-    content: `
-      <div class="vitality-network-card">
-        <header class="vitality-network-card__header">
-          <img src="${escapeHTML(actor.img)}" width="36" height="36" alt=""/>
-          <h3>Vitality Network Restored</h3>
-        </header>
-        <div class="vitality-network-card__content">
-          <p>${escapeHTML(text)}</p>
-        </div>
-      </div>`
-  };
-  const whisper = getWhisperRecipients(showUpdates, actor);
-  if (whisper) messageData.whisper = whisper;
-  ChatMessage.create(messageData);
 }
