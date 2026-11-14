@@ -1,18 +1,56 @@
-/* Style the entire chat message */
-.vitality-network-message {
-  /* --chat-message-background: #9AC9AC; */
-  /* border-color: #527560; */
+/*
+ * Sargas' Vitality Network — chat card styles.
+ *
+ * The cards use their own classes instead of a system's (pf2e / sf2e), so
+ * they look the same on both systems. Colours come from Foundry's core theme
+ * variables, so light and dark chat themes both work.
+ */
+
+.vitality-network-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.vitality-network-message .message-content { 
-  /* border-top: 2px solid #eb469e; */
-  /* border-top: none; */
+.vitality-network-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--color-border-light-2, #7a7971);
 }
 
-.chat-card{
-  /* border-top: 2px solid #4683eb; */
-}
-.card-header {
-  /* border-top: 2px solid #eb8b46; */
+.vitality-network-card__header img {
+  flex: 0 0 36px;
+  border: none;
+  border-radius: 4px;
 }
 
+.vitality-network-card__header h3 {
+  margin: 0;
+  border: none;
+  font-size: var(--font-size-16, 1rem);
+}
+
+.vitality-network-card__content p {
+  margin: 0.25rem 0;
+}
+
+.vitality-network-card__content .form-group,
+.application .vitality-points-input {
+  margin: 0.25rem 0;
+}
+
+.vitality-network-card .vitality-points-input {
+  width: 100%;
+}
+
+.vitality-network-card .spend-vitality-btn {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.vitality-network-card .spend-vitality-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
